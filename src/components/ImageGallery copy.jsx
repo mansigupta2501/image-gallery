@@ -7,12 +7,12 @@ import { fetchImages, setHoveredImage, setSearchQuery, setSelectedCategory } fro
 const ImageGallery = () => {
   const dispatch = useDispatch();
   const navigateTo = useNavigate();
-  const [allCategories] = useState('beach,mountains,birds,food')
+  const [allCategories] = useState('')
   const { images, hoveredImage, searchQuery } = useSelector((state) => state.images);
 
   useEffect(() => {
-    dispatch(fetchImages({ searchQuery, allCategories }));
-  }, [dispatch, searchQuery, allCategories]);
+    dispatch(fetchImages({ searchQuery }));
+  }, [dispatch, searchQuery]);
 
   const categories = ['Mountains', 'Beaches', 'Birds', 'Food'];
   const rows = [];
