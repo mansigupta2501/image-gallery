@@ -1,8 +1,8 @@
-// imagesSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-export const fetchImages = createAsyncThunk('images/fetchImages', async ({ allCategories }) => {
-  const apiUrl = `https://api.unsplash.com/search/collections/?client_id=ClhSBszg6lJgKIMD09FE7JJ_OyQuwoIl73xNmdkvRPU&page=2&query=${allCategories}&per_page=20`;
+export const fetchImages = createAsyncThunk('images/fetchImages', async ({ query }) => {
+  console.log('query',query);
+  const apiUrl = `https://api.unsplash.com/search/collections/?client_id=ClhSBszg6lJgKIMD09FE7JJ_OyQuwoIl73xNmdkvRPU&page=2&query=${query}&per_page=20`;
 
   const response = await fetch(apiUrl);
   const data = await response.json();
@@ -37,6 +37,7 @@ const imagesSlice = createSlice({
   initialState: {
     images: [],
     imagesByCategory: [],
+    bigImage: null, 
     hoveredImage: null,
     searchQuery: '',
     selectedCategory: null,
@@ -53,6 +54,13 @@ const imagesSlice = createSlice({
     setSelectedCategory(state, action) {
       state.selectedCategory = action.payload;
     },
+    setBigImage(state, action) {
+      state.bigImage = action.payload;
+    },
+    clearBigImage(state) {
+      state.bigImage = null;
+    },
+
   },
   extraReducers: (builder) => {
     builder
@@ -81,6 +89,6 @@ const imagesSlice = createSlice({
   },
 });
 
-export const { setHoveredImage, setSearchQuery, setSelectedCategory } = imagesSlice.actions;
+export const { setHoveredImage, setSearchQuery, setSelectedCategory, setBigImage, clearBigImage } = imagesSlice.actions;
 
 export default imagesSlice.reducer;

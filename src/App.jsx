@@ -1,11 +1,12 @@
-import ImageGallery from './components/ImageGallery';
+import { Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 
 function App() {
+ 
+
   return (
     <>
-    {/* <ImageGallery />  */}
-      
        </>
   );
 }

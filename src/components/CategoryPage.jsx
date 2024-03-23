@@ -1,83 +1,190 @@
-// CategoryPage.js
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { Grid } from '@mui/material';
-import { fetchImagesByCategory, setHoveredImage } from '../store/imageSlice';
+import { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { Grid, Modal, Button } from "@mui/material";
+import {
+  fetchImagesByCategory,
+  setHoveredImage,
+  setBigImage,
+  setSelectedCategory,
+  clearBigImage,
+} from "../store/imageSlice";
+import CloseIcon from "@mui/icons-material/Close";
 
 const CategoryPage = () => {
-    const { categoryName } = useParams();
-    const dispatch = useDispatch();
-  const { imagesByCategory, selectedCategory, hoveredImage } = useSelector((state) => state.images);
+  const { categoryName } = useParams();
+  const dispatch = useDispatch();
+  const navigateTo = useNavigate();
+  const { imagesByCategory, selectedCategory, hoveredImage, bigImage } =
+    useSelector((state) => state.images);
+  const categories = ["Mountains", "Beaches", "Birds", "Food"];
 
   useEffect(() => {
     dispatch(fetchImagesByCategory({ selectedCategory }));
   }, [dispatch, selectedCategory]);
 
-  const rows = [];
-  for (let i = 0; i < imagesByCategory.length; i += 5) {
-    rows.push(imagesByCategory.slice(i, i + 5));
-  }
-
   const handleMouseEnter = (imageId) => {
-    const hoveredImg = imagesByCategory.find(image => image.id === imageId);
+    const hoveredImg = imagesByCategory.find((image) => image.id === imageId);
     dispatch(setHoveredImage(hoveredImg));
   };
-  
+
   const handleMouseLeave = () => {
     dispatch(setHoveredImage(null));
   };
 
+  const handleDownload = () => {
+    if (bigImage) {
+      window.open(bigImage, "_blank");
+    }
+  };
+
+  const handleImageClick = (imageUrl) => {
+    dispatch(setBigImage(imageUrl));
+  };
+
+  const handleCloseModal = () => {
+    dispatch(clearBigImage());
+  };
+
+  const handleCategoryClick = (category) => {
+    dispatch(setSelectedCategory(category));
+    navigateTo(`/category/${category}`);
+  };
+  const handleBackBtnClick = () => {
+    navigateTo('/image-gallery');
+  };
+
   return (
-    <div>
-      <h1>Category: {categoryName}</h1>
-      <div
-    style={{
-      backgroundImage: `url('https://images.unsplash.com/photo-1553095066-5014bc7b7f2d?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8d2FsbCUyMGJhY2tncm91bmR8ZW58MHx8MHx8fDA%3D')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      height: '200vh',
-    }}
-  >
-    <div className="image-grid">
-        <Grid container justifyContent="center" spacing={2}>
-          {rows.map((row, rowIndex) => (
-            <Grid key={rowIndex} container item xs={12} spacing={2} justifyContent="center">
-              {row.map(image => (
-                <Grid key={image.id} item onMouseEnter={() => handleMouseEnter(image.id)} onMouseLeave={handleMouseLeave}>
-                  <div style={{ position: 'relative' }}>
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      style={{ width: '150px', height: '150px', margin: '5px' }}
-                    />
-                    {hoveredImage && hoveredImage.id === image.id && (
-                      <div
-                        style={{
-                          position: 'absolute',
-                          background: 'rgba(0, 0, 0, 0.7)',
-                          color: 'white',
-                          padding: '5px',
-                          transform: 'scale(0.8)',
-                          borderRadius: '5px',
-                          transition: 'transform 0.3s',
-                          zIndex: '1',
-                        }}
-                      >
-                        <p>Width: {hoveredImage.width}px</p>
-                        <p>Height: {hoveredImage.height}px</p>
-                        <p>Published At: {new Date(hoveredImage.createdAt).toLocaleString()}</p>
-                      </div>
-                    )}
-                  </div>
-                </Grid>
-              ))}
-            </Grid>
+    <div
+      style={{
+        filter: bigImage ? "blur(5px)" : "none", // Apply blur if modal is open
+      }}
+    >
+        <Button variant="contained" onClick={handleBackBtnClick}>Back to Homepage</Button>
+      <div style={{ padding: "20px" }}>
+        <h1 style={{ textAlign: "center", color: "red" }}>
+          {categoryName} Images
+        </h1>
+
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => handleCategoryClick(category)}
+              style={{
+                margin: "5px",
+                backgroundColor:
+                  selectedCategory === category ? "green" : "#001f3f",
+                color: "white",
+                fontWeight: "bold",
+                border: "none",
+                padding: "10px",
+                borderRadius: "5px",
+                cursor: "pointer",
+              }}
+            >
+              {category}
+            </button>
           ))}
-        </Grid>
+        </div>
+        {imagesByCategory.length > 0 ? (
+          <div className="image-grid">
+          <Grid container justifyContent="center" spacing={2}>
+            {imagesByCategory.map((image) => (
+              <Grid
+                key={image.id}
+                item
+                xs={12} // Display one column on extra-small screens
+                sm={4}  // Display two columns on small screens
+                md={3}  // Display three columns on medium screens
+                lg={2}  // Display four columns on large screens
+                xl={2}  // Display six columns on extra-large screens
+              >
+                <div style={{ position: "relative" }}>
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    style={{
+                        width: "200px",
+                        height: "120px",
+                        margin: "5px",
+                      cursor: "pointer"
+                    }}
+                    onMouseEnter={() => handleMouseEnter(image.id)}
+                    onMouseLeave={handleMouseLeave}
+                    onClick={() => handleImageClick(image.src)} // Open modal on image click
+                  />
+                  {hoveredImage && hoveredImage.id === image.id && (
+                    <div
+                      style={{
+                        position: "absolute",
+                            background: "rgba(0, 0, 0, 0.7)",
+                            color: "white",
+                            padding: "5px",
+                            borderRadius: "5px",
+                            transition: "transform 0.3s",
+                            zIndex: "1",
+                            width: "200px",
+                            height: "90px",
+                            top: "123px",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                      }}
+                    >
+                      <p style={{ margin: "5px 0" }}>
+                        {hoveredImage.width} x {hoveredImage.height}
+                      </p>
+                      <p style={{ margin: "5px 0" }}>
+                        Published At:{" "}
+                        {new Date(hoveredImage.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Grid>
+            ))}
+          </Grid>
+        </div>
+        
+        ) : (
+          <p style={{ color: "white" }}>No Results Found</p>
+        )}
       </div>
-  </div>
-      {/* Display images based on the fetched data */}
+      {bigImage && (
+        <Modal
+          open={true}
+          onClose={handleCloseModal}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div style={{ background: "#fff", padding: "20px" }}>
+            <img
+              src={bigImage}
+              alt="Big Image"
+              style={{
+                maxWidth: "75vw",
+                maxHeight: "75vh",
+                objectFit: "contain",
+              }}
+            />
+            <div style={{ textAlign: "center", marginTop: "20px" }}>
+              <Button
+                variant="contained"
+                onClick={handleDownload}
+                style={{ marginRight: "10px" }}
+              >
+                Download
+              </Button>
+              <Button variant="contained" onClick={handleCloseModal}>
+                <CloseIcon />
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
